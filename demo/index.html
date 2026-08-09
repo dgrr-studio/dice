@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@dgrr-studio/dice 데모</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #fff;
+        --fg: #111;
+        --muted: #666;
+        --line: #ddd;
+        --accent: #3b5bdb;
+        --error: #c92a2a;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #16181c;
+          --fg: #f1f3f5;
+          --muted: #909296;
+          --line: #33373d;
+          --accent: #748ffc;
+          --error: #ff8787;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+        max-width: 34rem;
+        background: var(--bg);
+        color: var(--fg);
+        font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      h1 { font-size: 1.35rem; margin: 0 0 0.25rem; }
+      p.lead { margin: 0 0 2rem; color: var(--muted); }
+      form { display: flex; gap: 0.5rem; }
+      input, button {
+        font: inherit;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--bg);
+        color: var(--fg);
+      }
+      input { flex: 1; font-variant-numeric: tabular-nums; }
+      button {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      button:hover { filter: brightness(1.1); }
+      .presets { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.75rem; }
+      .presets button {
+        background: transparent;
+        color: var(--accent);
+        border-color: var(--line);
+        font-weight: 400;
+        padding: 0.3rem 0.7rem;
+        font-size: 0.9rem;
+      }
+      #result {
+        margin: 2rem 0 0.5rem;
+        font-size: 4rem;
+        font-weight: 700;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        min-height: 4rem;
+      }
+      #detail { color: var(--muted); font-size: 0.9rem; min-height: 1.6rem; }
+      #detail.error { color: var(--error); }
+      h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 2.5rem 0 0.5rem; }
+      #history { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+      #history li {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--line);
+        font-variant-numeric: tabular-nums;
+      }
+      #history .roll { color: var(--muted); }
+      code { background: color-mix(in srgb, var(--fg) 8%, transparent); padding: 0.1em 0.35em; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <h1>@dgrr-studio/dice</h1>
+    <p class="lead">
+      주사위 표기법을 넣고 굴려 보세요. <code>1d6</code> 은 “6면 주사위 1개”,
+      <code>2d6+3</code> 은 “6면 주사위 2개를 굴린 합에 3을 더함”이라는 뜻입니다.
+    </p>
+
+    <form id="form">
+      <input id="notation" value="1d6" autocomplete="off" spellcheck="false" aria-label="주사위 표기법" />
+      <button type="submit">굴리기</button>
+    </form>
+
+    <div class="presets" id="presets">
+      <button type="button">1d6</button>
+      <button type="button">d20</button>
+      <button type="button">2d6+3</button>
+      <button type="button">4d8-1</button>
+      <button type="button">3d10</button>
+    </div>
+
+    <div id="result">–</div>
+    <div id="detail">굴리기 버튼을 눌러 보세요.</div>
+
+    <h2>기록</h2>
+    <ul id="history"></ul>
+
+    <script type="module">
+      import { dice } from '../dist/index.js';
+
+      const form = document.querySelector('#form');
+      const input = document.querySelector('#notation');
+      const result = document.querySelector('#result');
+      const detail = document.querySelector('#detail');
+      const history = document.querySelector('#history');
+
+      // 같은 표기법이면 주사위를 다시 만들지 않고 계속 굴린다.
+      let current = null;
+      let declared = null;
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        try {
+          if (!current || declared !== input.value) {
+            current = dice(input.value);
+            declared = input.value;
+          }
+          const value = current.roll();
+          result.textContent = value;
+          detail.classList.remove('error');
+          detail.textContent = `${current.notation} · 가능한 범위 ${current.min} ~ ${current.max}`;
+          history.insertAdjacentHTML(
+            'afterbegin',
+            `<li><span class="roll">${current.notation}</span><strong>${value}</strong></li>`,
+          );
+        } catch (error) {
+          current = null;
+          result.textContent = '–';
+          detail.classList.add('error');
+          detail.textContent = `${error.name}: ${error.message}`;
+        }
+      });
+
+      document.querySelector('#presets').addEventListener('click', (event) => {
+        if (event.target.tagName !== 'BUTTON') return;
+        input.value = event.target.textContent;
+        form.requestSubmit();
+      });
+    </script>
+  </body>
+</html>

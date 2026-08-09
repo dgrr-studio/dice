@@ -1,0 +1,49 @@
+{
+  "name": "@dgrr-studio/dice",
+  "version": "0.1.0",
+  "description": "Minimal, typed dice roller. Declare a die once, roll it as often as you like.",
+  "keywords": [
+    "dice",
+    "roll",
+    "rpg",
+    "d20",
+    "random",
+    "tabletop",
+    "typescript"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dgrr-studio/dice.git"
+  },
+  "homepage": "https://github.com/dgrr-studio/dice#readme",
+  "bugs": "https://github.com/dgrr-studio/dice/issues",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/index.js",
+    "dist/index.d.ts"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test src/index.test.ts",
+    "build": "tsc",
+    "demo": "npm run build && npx --yes serve .",
+    "prepublishOnly": "npm test && npm run build"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2"
+  }
+}
