@@ -28,6 +28,21 @@ export interface Dice {
   roll(): number;
 }
 
+const CRYPTO_BUFFER = new Uint32Array(1);
+
+/**
+ * Cryptographically secure random source, for when `Math.random` is not good
+ * enough: `dice('d20', cryptoRandom)`.
+ *
+ * Needs the Web Crypto global, so browsers, Deno, Bun, and Node 19+. On Node 18
+ * it requires `--experimental-global-webcrypto`.
+ *
+ * @returns a number in `[0, 1)` with 32 bits of entropy
+ */
+export function cryptoRandom(): number {
+  return crypto.getRandomValues(CRYPTO_BUFFER)[0]! / 2 ** 32;
+}
+
 const PATTERN = /^(\d*)d(\d+)(?:([+-])(\d+))?$/i;
 
 // ponytail: arbitrary cap so a hostile notation like "1e9d6" can't hang the

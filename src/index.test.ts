@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { dice } from './index.ts';
+import { cryptoRandom, dice } from './index.ts';
 
 test('rolls stay in range and cover every face', () => {
   const d6 = dice('1d6');
@@ -36,6 +36,17 @@ test('parses modifiers', () => {
 test('rng is injectable, hitting both bounds', () => {
   assert.equal(dice('3d6+2', () => 0).roll(), 5);
   assert.equal(dice('3d6+2', () => 0.999999).roll(), 20);
+});
+
+test('cryptoRandom stays in [0, 1) and drives a die', () => {
+  for (let i = 0; i < 5000; i++) {
+    const value = cryptoRandom();
+    assert.ok(value >= 0 && value < 1, `out of range: ${value}`);
+  }
+
+  const d20 = dice('d20', cryptoRandom);
+  const seen = new Set(Array.from({ length: 5000 }, () => d20.roll()));
+  assert.equal(seen.size, 20);
 });
 
 test('rejects bad notation', () => {

@@ -1,6 +1,6 @@
 {
   "name": "@dgrr-studio/dice",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Minimal, typed dice roller. Declare a die once, roll it as often as you like.",
   "keywords": [
     "dice",

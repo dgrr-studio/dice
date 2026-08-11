@@ -108,6 +108,19 @@ const 항상6 = dice('1d6', () => 0.999);
 항상6.roll(); // 언제나 6
 ```
 
+**돈이나 보안이 걸린 곳에 쓴다면** 기본 난수(`Math.random`)로는 부족합니다.
+빠르지만 예측 가능해서, 나온 값을 충분히 지켜보면 다음 값을 맞힐 수 있습니다.
+이럴 때는 함께 들어 있는 `cryptoRandom`을 두 번째 인자로 넘기세요.
+
+```js
+import { dice, cryptoRandom } from '@dgrr-studio/dice';
+
+const 공정한주사위 = dice('d20', cryptoRandom);
+공정한주사위.roll();
+```
+
+브라우저와 Node 19 이상에서 바로 동작합니다. 그냥 게임이라면 기본값으로 충분합니다.
+
 ## 5. 용어 정리
 
 - **패키지(package)**: 남이 만들어 둔 코드 묶음. `npm install`로 내 프로젝트에 가져다 씁니다.

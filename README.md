@@ -2,9 +2,9 @@
 
 Minimal, fully typed dice roller. Declare a die once, roll it as often as you like.
 
-- No dependencies, ESM only, ~40 lines of source
+- No dependencies, ESM only, under 50 lines of source
 - Standard dice notation with modifiers: `1d6`, `d20`, `2d6+3`, `4d8-1`
-- Bring your own random source for seeded or deterministic rolls
+- Crypto-secure rolls included, or bring your own source for seeded and deterministic ones
 
 ## Install
 
@@ -47,6 +47,19 @@ const loaded = dice('1d6', () => 0.999);
 loaded.roll(); // always 6
 ```
 
+### Secure rolls
+
+`Math.random` is fast but predictable: given enough observed rolls, the next one
+can be guessed. That is fine for a game, not for anything with money or secrets
+riding on it. Pass `cryptoRandom` instead:
+
+```ts
+import { dice, cryptoRandom } from '@dgrr-studio/dice';
+
+const fair = dice('d20', cryptoRandom);
+fair.roll(); // backed by Web Crypto
+```
+
 ## API
 
 ### `dice(notation, rng?): Dice`
@@ -58,6 +71,12 @@ loaded.roll(); // always 6
 
 Throws `TypeError` if the notation cannot be parsed, and `RangeError` if the die
 has fewer than one side, fewer than one die, or more than 1000 dice.
+
+### `cryptoRandom(): number`
+
+A drop-in `rng` returning `[0, 1)` with 32 bits of entropy from
+`crypto.getRandomValues`. Requires the Web Crypto global: browsers, Deno, Bun,
+and Node 19+ (Node 18 needs `--experimental-global-webcrypto`).
 
 ### `Dice`
 
