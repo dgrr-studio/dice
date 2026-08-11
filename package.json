@@ -9,7 +9,9 @@
     "d20",
     "random",
     "tabletop",
-    "typescript"
+    "typescript",
+    "trpg",
+    "dice-roller"
   ],
   "license": "MIT",
   "repository": {
