@@ -5,10 +5,13 @@
  * validated by {@link dice} itself.
  */
 export type Notation =
-  | `${number}d${number}`
-  | `d${number}`
-  | `${number}d${number}${'+' | '-'}${number}`
-  | `d${number}${'+' | '-'}${number}`;
+  | `${number}${D}${number}`
+  | `${D}${number}`
+  | `${number}${D}${number}${'+' | '-'}${number}`
+  | `${D}${number}${'+' | '-'}${number}`;
+
+/** The separator is case insensitive at runtime, so `2D6` is valid too. */
+type D = 'd' | 'D';
 
 /**
  * Accepts `T` when it is valid notation, or when it is no narrower than

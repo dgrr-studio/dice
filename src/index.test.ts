@@ -59,6 +59,7 @@ function _typeChecks(fromInput: string) {
   dice('d6+');
   dice('2d6+3');
   dice('d20', cryptoRandom);
+  dice('2D6-1'); // case insensitive, matching the runtime pattern
   dice(fromInput);
 }
 
