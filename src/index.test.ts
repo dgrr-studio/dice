@@ -49,6 +49,19 @@ test('cryptoRandom stays in [0, 1) and drives a die', () => {
   assert.equal(seen.size, 20);
 });
 
+// Compile-time counterpart to the runtime check below: `tsc` fails if a bad
+// literal stops being rejected, or if plain `string` stops being accepted.
+// Never called — `dice('2d')` would throw.
+function _typeChecks(fromInput: string) {
+  // @ts-expect-error '2d' is not valid notation
+  dice('2d');
+  // @ts-expect-error 'd6+' is not valid notation
+  dice('d6+');
+  dice('2d6+3');
+  dice('d20', cryptoRandom);
+  dice(fromInput);
+}
+
 test('rejects bad notation', () => {
   for (const bad of ['', 'abc', '1d', 'd', '1d6+', '1d6+x', '2 d 6', '1d6+1+1', '-1d6']) {
     assert.throws(() => dice(bad), TypeError, `should reject ${JSON.stringify(bad)}`);

@@ -10,6 +10,17 @@ export type Notation =
   | `${number}d${number}${'+' | '-'}${number}`
   | `d${number}${'+' | '-'}${number}`;
 
+/**
+ * Accepts `T` when it is valid notation, or when it is no narrower than
+ * `string` (so runtime input still type checks). A bad literal resolves to a
+ * message instead, which fails to match `T` and surfaces as the error.
+ */
+type Checked<T extends string> = T extends Notation
+  ? T
+  : string extends T
+    ? T
+    : `Invalid dice notation: ${T}`;
+
 /** A declared die, ready to be rolled any number of times. */
 export interface Dice {
   /** Normalized notation, e.g. `2d6+3`. */
@@ -52,12 +63,18 @@ const MAX_COUNT = 1000;
 /**
  * Declare a die from dice notation.
  *
+ * String literals are checked at compile time, so `dice('2d')` is a type error.
+ * Values typed as `string` are accepted and validated at runtime instead.
+ *
  * @param notation e.g. `1d6`, `d20`, `2d6+3`
  * @param rng source of randomness returning `[0, 1)`; defaults to `Math.random`
  * @throws {TypeError} if the notation cannot be parsed
  * @throws {RangeError} if the die has no faces or too many dice
  */
-export function dice(notation: Notation | string, rng: () => number = Math.random): Dice {
+export function dice<T extends string>(
+  notation: T & Checked<T>,
+  rng: () => number = Math.random,
+): Dice {
   const match = PATTERN.exec(String(notation).trim());
   if (!match) {
     throw new TypeError(`Invalid dice notation: ${JSON.stringify(notation)}`);
