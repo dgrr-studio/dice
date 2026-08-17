@@ -1,17 +1,21 @@
 {
   "name": "@dgrr-studio/dice",
   "version": "0.2.1",
-  "description": "Minimal, typed dice roller. Declare a die once, roll it as often as you like.",
+  "description": "Minimal, zero-dependency TypeScript dice roller. Declare a die once, roll it as often as you like.",
   "keywords": [
     "dice",
+    "dice-roller",
+    "dice-notation",
     "roll",
     "rpg",
-    "d20",
-    "random",
-    "tabletop",
-    "typescript",
     "trpg",
-    "dice-roller"
+    "tabletop",
+    "d20",
+    "2d6",
+    "random",
+    "typescript",
+    "zero-dependency",
+    "crypto"
   ],
   "license": "MIT",
   "repository": {

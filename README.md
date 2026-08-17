@@ -1,6 +1,9 @@
 # @dgrr-studio/dice
 
-Minimal, fully typed dice roller. Declare a die once, roll it as often as you like.
+[![npm](https://img.shields.io/npm/v/@dgrr-studio/dice)](https://www.npmjs.com/package/@dgrr-studio/dice)
+[![bundle size](https://img.shields.io/bundlejs/size/@dgrr-studio/dice)](https://bundlejs.com/?q=%40dgrr-studio%2Fdice)
+
+Minimal, zero-dependency TypeScript dice roller. Declare a die once, roll it as often as you like.
 
 - No dependencies, ESM only, under 50 lines of source
 - Standard dice notation with modifiers: `1d6`, `d20`, `2d6+3`, `4d8-1`
