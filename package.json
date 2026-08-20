@@ -1,6 +1,6 @@
 {
   "name": "@dgrr-studio/dice",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Minimal, zero-dependency TypeScript dice roller. Declare a die once, roll it as often as you like.",
   "keywords": [
     "dice",
