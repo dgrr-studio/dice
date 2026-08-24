@@ -70,6 +70,15 @@ attack.sides; //  6  (면의 수)
 attack.modifier; //  3  (보정치)
 ```
 
+**"4랑 6이 나와서 13"처럼 눈금을 보여 주고 싶다면** `roll()` 대신 `rollAll()`을
+쓰세요. 합계와 각 주사위의 눈이 같이 나옵니다.
+
+```js
+const { total, rolls } = attack.rollAll();
+total; // 13
+rolls; // [4, 6]  (이 합계를 만든 눈금)
+```
+
 ## 4. 자주 막히는 곳
 
 **잘못된 표기를 넣으면 오류가 납니다.** 이건 버그가 아니라 의도된 동작입니다.
@@ -108,18 +117,36 @@ const 항상6 = dice('1d6', () => 0.999);
 항상6.roll(); // 언제나 6
 ```
 
-**돈이나 보안이 걸린 곳에 쓴다면** 기본 난수(`Math.random`)로는 부족합니다.
-빠르지만 예측 가능해서, 나온 값을 충분히 지켜보면 다음 값을 맞힐 수 있습니다.
-이럴 때는 함께 들어 있는 `cryptoRandom`을 두 번째 인자로 넘기세요.
+**같은 판을 그대로 다시 돌려보고 싶다면** (리플레이, 버그 재현, 결과 검증)
+`seededRandom`에 시드 숫자를 넣어 넘기세요. 시드가 같으면 나오는 값도, 순서도
+똑같습니다.
 
 ```js
-import { dice, cryptoRandom } from '@dgrr-studio/dice';
+import { dice, seededRandom } from '@dgrr-studio/dice';
 
-const 공정한주사위 = dice('d20', cryptoRandom);
+const 판 = dice('2d6+3', seededRandom(42));
+판.roll(); // 시드 42면 언제나 같은 수열
+```
+
+시드 숫자만 적어 두면 나중에 그 판을 통째로 되살릴 수 있습니다. 단 재현은 굴린
+**순서**까지 같아야 하므로, 주사위가 여러 개면 각각에 `seededRandom(시드)`를
+따로 주는 편이 간단합니다.
+
+**돈이나 보안이 걸린 곳에 쓴다면** 따로 할 일이 없습니다. 두 번째 인자를
+생략하면 암호학적으로 안전한 난수(`cryptoRandom`)로 굴립니다.
+`Math.random`은 빠르지만 예측 가능해서, 나온 값을 충분히 지켜보면 다음 값을
+맞힐 수 있기 때문입니다.
+
+```js
+import { dice } from '@dgrr-studio/dice';
+
+const 공정한주사위 = dice('d20');
 공정한주사위.roll();
 ```
 
-브라우저와 Node 19 이상에서 바로 동작합니다. 그냥 게임이라면 기본값으로 충분합니다.
+브라우저와 Node 19 이상에서 바로 동작합니다. Web Crypto가 없는 환경(플래그 없이
+켠 Node 18)에서는 `Math.random`으로 대신 굴립니다. 그런 경우에도 반드시 암호학적
+난수여야 한다면 `cryptoRandom`을 직접 넘기세요. 없으면 그 자리에서 에러가 납니다.
 
 ## 5. 용어 정리
 

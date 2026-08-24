@@ -1,0 +1,62 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Running the tests needs a Node that strips TypeScript types.
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+      # The published shape, not just the source: publint checks the manifest,
+      # and attw checks that types resolve for every consumer. The ESM-only
+      # profile ignores the CJS findings this package documents on purpose.
+      - if: matrix.node == '24'
+        run: |
+          npx --yes publint
+          npx --yes @arethetypeswrong/cli --pack . --profile esm-only
+
+      - if: matrix.node == '24'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+  node18:
+    # The oldest runtime in `engines`, and the only supported one without the
+    # Web Crypto global, so this is where the Math.random fallback actually
+    # runs. It cannot run the TypeScript tests, and the package has no
+    # dependencies, so it just rolls the built output.
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - run: |
+          node --input-type=module -e '
+            import { dice } from "./dist/index.js";
+            const value = dice("d20").roll();
+            if (!Number.isInteger(value) || value < 1 || value > 20) {
+              throw new Error(`bad roll: ${value}`);
+            }
+            console.log("node 18 fallback ok:", value);
+          '
