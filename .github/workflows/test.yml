@@ -44,6 +44,9 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
+      # Only for `package.json`: without `"type": "module"` next to it, Node
+      # reads the built file as CommonJS. Dependencies are not installed.
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
