@@ -23,7 +23,7 @@ attack.min; // 5 — the range is readable without rolling
 
 ## Why `@dgrr-studio/dice`?
 
-If you need a small, typed dice engine rather than a full RPG framework, this
+If you need a small, type-safe dice engine rather than a full RPG framework, this
 package stays small and predictable on purpose. What that buys you:
 
 **A die is a value, not a function call.** Notation is parsed once, when you declare
@@ -98,7 +98,7 @@ Two details worth knowing:
 
 - Rolls are backed by Web Crypto from Node 19 on. Node 18 has no Web Crypto
   global unless started with `--experimental-global-webcrypto`, so the default
-  `rng` falls back to `Math.random` there — see [Secure rolls](#secure-rolls).
+  `rng` falls back to `Math.random` there — see [Crypto-secure rolls](#crypto-secure-rolls).
 - TypeScript must resolve `exports`, so `moduleResolution` has to be `node16`,
   `nodenext`, or `bundler` — see [CommonJS projects](#commonjs-projects).
 
@@ -133,7 +133,7 @@ dice('1d6+'); // TypeError: Invalid dice notation: "1d6+"
 dice('1d0'); // RangeError: A die needs at least 1 side: 1d0
 ```
 
-### Deterministic rolls
+### Deterministic and seeded rolls
 
 `dice` takes any function returning a number in `[0, 1)` as its second argument,
 which makes tests and seeded runs straightforward:
@@ -159,7 +159,7 @@ bug reports, and verifying a result after the fact. Reproduction replays the
 calls in order, so give each die its own generator unless you also record the
 order they were rolled in.
 
-### Secure rolls
+### Crypto-secure rolls
 
 `Math.random` is fast but predictable: given enough observed rolls, the next one
 can be guessed. That is fine for a game, not for anything with money or secrets

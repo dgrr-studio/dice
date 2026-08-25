@@ -19,7 +19,13 @@
     "seed",
     "seeded-random",
     "deterministic",
-    "prng"
+    "prng",
+    "type-safe",
+    "ttrpg",
+    "dnd",
+    "d6",
+    "esm",
+    "seeded-rng"
   ],
   "license": "MIT",
   "repository": {
