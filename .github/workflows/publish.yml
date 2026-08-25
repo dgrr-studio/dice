@@ -45,9 +45,8 @@ jobs:
       # `prepublishOnly` runs the tests and the build, so a red test cannot ship.
       # `access: public` already lives in publishConfig.
       #
-      # Needs an automation token in the NPM_TOKEN secret. Configuring trusted
-      # publishing for this package on npmjs.com lets the OIDC token above do
-      # the authenticating too, and the secret can then be deleted.
+      # No npm token: this package is a trusted publisher for this workflow on
+      # npmjs.com, so the OIDC token from `id-token: write` both authenticates
+      # the publish and signs the provenance. Renaming this file or the job
+      # breaks that trust — update the publisher on npmjs.com to match.
       - run: npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
