@@ -4,6 +4,13 @@ All notable changes to this package are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this package
 follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.3.1
+
+### Changed
+
+- The package homepage now points at the live demo,
+  <https://chimimode.com/dgrr-dice/>, and the README links to it. No code changes.
+
 ## 0.3.0
 
 A minor bump rather than a patch: npm treats `^0.2.2` as `<0.3.0`, so nobody is
