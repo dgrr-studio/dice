@@ -6,6 +6,8 @@
 
 Minimal, zero-dependency TypeScript dice roller. Declare a die once, roll it as often as you like.
 
+**[Try it in the browser →](https://chimimode.com/dgrr-dice/)**
+
 ```ts
 import { dice } from '@dgrr-studio/dice';
 

@@ -32,7 +32,7 @@
     "type": "git",
     "url": "git+https://github.com/dgrr-studio/dice.git"
   },
-  "homepage": "https://github.com/dgrr-studio/dice#readme",
+  "homepage": "https://chimimode.com/dgrr-dice/",
   "bugs": "https://github.com/dgrr-studio/dice/issues",
   "type": "module",
   "exports": {
