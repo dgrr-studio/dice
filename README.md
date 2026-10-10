@@ -178,6 +178,50 @@ Among the supported runtimes that is only Node 18 started without
 `--experimental-global-webcrypto`; pass `cryptoRandom` explicitly if you would
 rather that case throw than silently downgrade.
 
+### React and Vue
+
+No adapter needed: a die is a plain object, so declare it once and keep the
+latest `rollAll()` result in state. A fixed die can live at module scope; one
+built from props or input should be memoized so it is parsed once per notation,
+not once per render.
+
+```tsx
+import { useMemo, useState } from 'react';
+import { dice } from '@dgrr-studio/dice';
+
+function Roller({ notation }: { notation: string }) {
+  const die = useMemo(() => dice(notation), [notation]);
+  const [result, setResult] = useState<{ total: number; rolls: number[] } | null>(null);
+
+  return (
+    <button onClick={() => setResult(die.rollAll())}>
+      {die.notation} ({die.min}–{die.max}): {result?.total ?? '—'}
+    </button>
+  );
+}
+```
+
+```vue
+<script setup lang="ts">
+import { computed, shallowRef } from 'vue';
+import { dice } from '@dgrr-studio/dice';
+
+const props = defineProps<{ notation: string }>();
+const die = computed(() => dice(props.notation));
+const result = shallowRef<{ total: number; rolls: number[] } | null>(null);
+</script>
+
+<template>
+  <button @click="result = die.rollAll()">
+    {{ die.notation }} ({{ die.min }}–{{ die.max }}): {{ result?.total ?? '—' }}
+  </button>
+</template>
+```
+
+`dice` throws on bad notation, so when the notation comes from user input, wrap
+the call in `try`/`catch` and render the error rather than letting it reach
+the component tree.
+
 ## API
 
 ### `dice(notation, rng?, options?): Dice`

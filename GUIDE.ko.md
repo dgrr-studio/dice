@@ -81,6 +81,56 @@ total; // 13
 rolls; // [4, 6]  (이 합계를 만든 눈금)
 ```
 
+### React, Vue에서 쓰기
+
+따로 설치할 어댑터는 없습니다. 주사위는 평범한 객체라서, 한 번 만들어 두고
+`rollAll()` 결과만 상태(state)에 담으면 됩니다.
+
+주의할 점은 하나입니다. 컴포넌트 함수 안에서 `dice(...)`를 그냥 부르면 화면이
+다시 그려질 때마다 주사위를 새로 만듭니다. 표기가 고정이면 컴포넌트 바깥에
+두고, props처럼 바뀔 수 있는 값이면 React는 `useMemo`, Vue는 `computed`로
+감싸 표기가 바뀔 때만 새로 만들게 하세요.
+
+React:
+
+```tsx
+import { useMemo, useState } from 'react';
+import { dice } from '@dgrr-studio/dice';
+
+function Roller({ notation }: { notation: string }) {
+  const die = useMemo(() => dice(notation), [notation]);
+  const [result, setResult] = useState<{ total: number; rolls: number[] } | null>(null);
+
+  return (
+    <button onClick={() => setResult(die.rollAll())}>
+      {die.notation} ({die.min}–{die.max}): {result?.total ?? '—'}
+    </button>
+  );
+}
+```
+
+Vue:
+
+```vue
+<script setup lang="ts">
+import { computed, shallowRef } from 'vue';
+import { dice } from '@dgrr-studio/dice';
+
+const props = defineProps<{ notation: string }>();
+const die = computed(() => dice(props.notation));
+const result = shallowRef<{ total: number; rolls: number[] } | null>(null);
+</script>
+
+<template>
+  <button @click="result = die.rollAll()">
+    {{ die.notation }} ({{ die.min }}–{{ die.max }}): {{ result?.total ?? '—' }}
+  </button>
+</template>
+```
+
+사용자가 입력한 표기를 넘긴다면 잘못된 값에서 오류가 날 수 있습니다(아래
+"자주 막히는 곳" 참고). `try`/`catch`로 감싸 오류 메시지를 화면에 보여 주세요.
+
 ## 4. 자주 막히는 곳
 
 **잘못된 표기를 넣으면 오류가 납니다.** 이건 버그가 아니라 의도된 동작입니다.
