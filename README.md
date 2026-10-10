@@ -194,7 +194,9 @@ pattern enforces, so `1.5d6` and `2d6 + 3` are type errors; anything typed as
 looser approximation, for annotating values that hold notation.
 
 Throws `TypeError` if the notation cannot be parsed, and `RangeError` if the die
-has fewer than one side, fewer than one die, or more than `maxCount` dice. The
+has fewer than one side or more than 2^32, fewer than one die, more than
+`maxCount` dice, or numbers too large to sum exactly (past
+`Number.MAX_SAFE_INTEGER`). The
 default cap keeps a hostile `999999d6` from freezing the event loop; a
 simulation that really does roll more can raise it:
 

@@ -63,6 +63,11 @@ test('rollAll reports the faces behind the total', () => {
     'total must be the faces plus the modifier',
   );
   assert.ok(total >= d.min && total <= d.max);
+
+  // Both draw from the rng the same way, so a seed replays across either.
+  const viaRoll = dice('3d6+2', seededRandom(5));
+  const viaRollAll = dice('3d6+2', seededRandom(5));
+  for (let i = 0; i < 50; i++) assert.equal(viaRoll.roll(), viaRollAll.rollAll().total);
 });
 
 test('maxCount can be raised, and still guards by default', () => {
@@ -86,6 +91,13 @@ test('seededRandom replays the same run, and different seeds diverge', () => {
   for (const value of run(7)) {
     assert.ok(Number.isInteger(value) && value >= 5 && value <= 15, `out of range: ${value}`);
   }
+
+  // Pinned values: a replay recorded on one version must replay on the next,
+  // so changing the generator is a breaking change, and this is what says so.
+  const raw = seededRandom(42);
+  assert.deepEqual([raw(), raw(), raw()], [0.6011037519201636, 0.44829055899754167, 0.8524657934904099]);
+  const pinned = dice('2d6+3', seededRandom(42));
+  assert.deepEqual(Array.from({ length: 5 }, () => pinned.roll()), [10, 14, 9, 9, 12]);
 
   const d20 = dice('d20', seededRandom(1));
   const seen = new Set(Array.from({ length: 5000 }, () => d20.roll()));
@@ -127,4 +139,24 @@ test('rejects bad notation', () => {
   assert.throws(() => dice('1d0'), RangeError);
   assert.throws(() => dice('0d6'), RangeError);
   assert.throws(() => dice('5000d6'), RangeError);
+});
+
+test('rejects numbers too large to roll exactly', () => {
+  for (const bad of ['1d6+999999999999999999999', '1d99999999999999999999', '1d4294967297']) {
+    assert.throws(() => dice(bad), RangeError, `should reject ${bad}`);
+  }
+  assert.throws(() => dice('3000000d4294967296', undefined, { maxCount: Infinity }), RangeError);
+  // The faces alone reach 2^53; the modifier drags max back down to 1, but the
+  // sums along the way were already inexact.
+  assert.throws(
+    () => dice('2097152d4294967296-9007199254740991', undefined, { maxCount: Infinity }),
+    RangeError,
+  );
+
+  // Right at the edge: max lands exactly on 2^53 - 1, and the notation still
+  // round-trips. One more and it is refused.
+  const big = dice('1d4294967296+9007194959773695');
+  assert.equal(big.max, Number.MAX_SAFE_INTEGER);
+  assert.equal(dice(big.notation).notation, big.notation);
+  assert.throws(() => dice('1d4294967296+9007194959773696'), RangeError);
 });

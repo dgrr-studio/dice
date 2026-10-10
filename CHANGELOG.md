@@ -4,6 +4,22 @@ All notable changes to this package are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this package
 follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- Notation with numbers past `Number.MAX_SAFE_INTEGER` is refused with a
+  `RangeError`. It used to be accepted, rolled imprecisely, and normalized to
+  notation like `1d6+1e+21` that `dice` itself then rejected.
+- Dice with more than 2^32 sides are refused with a `RangeError`: with 32 bits
+  of entropy behind `cryptoRandom`, the faces past that could never come up.
+
+### Changed
+
+- `cryptoRandom` draws 256 values per `crypto.getRandomValues` call instead of
+  one. Rolling large pools of dice with the default `rng` is about 100 times
+  faster; the values and their distribution are unchanged.
+
 ## 0.3.1
 
 ### Changed

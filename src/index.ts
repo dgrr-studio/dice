@@ -86,7 +86,10 @@ export interface DiceOptions {
   maxCount?: number;
 }
 
-const CRYPTO_BUFFER = new Uint32Array(1);
+// One getRandomValues call per value costs ~2µs, which dominated rolling large
+// pools of dice; refilling 256 at a time makes it a rounding error.
+const CRYPTO_POOL = new Uint32Array(256);
+let cryptoIndex = CRYPTO_POOL.length;
 
 /**
  * Cryptographically secure random source, and the default one {@link dice}
@@ -98,7 +101,11 @@ const CRYPTO_BUFFER = new Uint32Array(1);
  * @returns a number in `[0, 1)` with 32 bits of entropy
  */
 export function cryptoRandom(): number {
-  return crypto.getRandomValues(CRYPTO_BUFFER)[0]! / 2 ** 32;
+  if (cryptoIndex === CRYPTO_POOL.length) {
+    crypto.getRandomValues(CRYPTO_POOL);
+    cryptoIndex = 0;
+  }
+  return CRYPTO_POOL[cryptoIndex++]! / 2 ** 32;
 }
 
 /**
@@ -141,6 +148,9 @@ const PATTERN = /^(\d*)d(\d+)(?:([+-])(\d+))?$/i;
 // loop. Callers that really do need more can raise it through `maxCount`.
 const MAX_COUNT = 1000;
 
+// cryptoRandom has 32 bits of entropy, so faces past 2^32 could never come up.
+const MAX_SIDES = 2 ** 32;
+
 /**
  * Declare a die from dice notation.
  *
@@ -153,7 +163,8 @@ const MAX_COUNT = 1000;
  *   missing
  * @param options see {@link DiceOptions}
  * @throws {TypeError} if the notation cannot be parsed
- * @throws {RangeError} if the die has no faces or too many dice
+ * @throws {RangeError} if the die has no faces or more than 2^32, too many
+ *   dice, or numbers too large to sum exactly
  */
 export function dice<T extends string>(
   notation: Checked<T>,
@@ -172,26 +183,41 @@ export function dice<T extends string>(
   if (sides < 1) throw new RangeError(`A die needs at least 1 side: ${notation}`);
   if (count < 1) throw new RangeError(`A roll needs at least 1 die: ${notation}`);
   if (count > maxCount) throw new RangeError(`At most ${maxCount} dice per roll: ${notation}`);
+  if (sides > MAX_SIDES) throw new RangeError(`A die has at most ${MAX_SIDES} sides: ${notation}`);
+
+  const faces = count * sides;
+  const min = count + modifier;
+  const max = faces + modifier;
+  // Past 2^53 sums lose precision, and the normalized notation would print as
+  // `1e+21`, which this very function then rejects. `faces` is checked on its
+  // own because a negative modifier can pull an inexact `max` back into range.
+  if (![count, modifier, faces, max].every(Number.isSafeInteger)) {
+    throw new RangeError(`Too large to roll exactly: ${notation}`);
+  }
 
   const suffix = modifier === 0 ? '' : modifier > 0 ? `+${modifier}` : `${modifier}`;
+  // ponytail: floor(r * sides) carries a modulo bias of at most sides / 2^32
+  // with cryptoRandom (about 1 in 7e8 for a d6); rejection sampling if that
+  // ever matters.
+  const face = () => Math.floor(rng() * sides) + 1;
 
   return {
     notation: `${count}d${sides}${suffix}`,
     count,
     sides,
     modifier,
-    min: count + modifier,
-    max: count * sides + modifier,
+    min,
+    max,
     roll() {
       let total = modifier;
-      for (let i = 0; i < count; i++) total += Math.floor(rng() * sides) + 1;
+      for (let i = 0; i < count; i++) total += face();
       return total;
     },
     rollAll() {
       const rolls: number[] = [];
       let total = modifier;
       for (let i = 0; i < count; i++) {
-        const value = Math.floor(rng() * sides) + 1;
+        const value = face();
         rolls.push(value);
         total += value;
       }
