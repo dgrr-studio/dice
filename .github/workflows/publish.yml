@@ -18,8 +18,7 @@ jobs:
       # short-lived OIDC token, so the npm page can show which repository and
       # commit built it.
       id-token: write
-      # Write, not read: the last step creates the GitHub release for the tag.
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -52,14 +51,25 @@ jobs:
       # breaks that trust — update the publisher on npmjs.com to match.
       - run: npm publish --provenance
 
-      # Pushing a tag does not make a GitHub release, so the Releases page
-      # stalled at whichever one was last made by hand. The notes are the
-      # CHANGELOG entry the first step already checked exists. This runs after
-      # the publish, so a failure here leaves npm correct and the release can
-      # be made by hand with the same command.
+  release:
+    # Pushing a tag does not make a GitHub release, so the Releases page
+    # stalled at whichever one was last made by hand. A job of its own, so the
+    # write token never shares a runner with `npm ci` and the dependencies it
+    # installs. It runs only after a successful publish; if it fails, npm is
+    # already correct and the release can be made by hand with the same command.
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # The notes are the CHANGELOG entry the publish job already checked exists.
       - name: Create the GitHub release from the CHANGELOG entry
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           awk -v v="## ${GITHUB_REF_NAME#v}" '{sub(/\r$/,"")} $0==v{f=1;next} /^## /{f=0} f' CHANGELOG.md > notes.md
-          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md --verify-tag
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --notes-file notes.md --verify-tag
